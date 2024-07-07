@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>{{ lesson.title }}</h1>
+  <div>{{ lesson.content|safe }}</div>
+  
+  <h2>Vocabulary</h2>
+  <ul>
+    {% for word in vocabulary %}
+      <li>
+        {{ word.word }} - {{ word.translation }}
+        {% if word.image %}
+          <img src="{{ word.image.url }}" alt="{{ word.word }}" style="max-width: 100px;">
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  
+  {% if progress.completed %}
+    <p>Lesson completed! Score: {{ progress.score }}</p>
+  {% else %}
+    <p>Lesson in progress...</p>
+  {% endif %}
+{% endblock %}

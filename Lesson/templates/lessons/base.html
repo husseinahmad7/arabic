@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic Learning</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        #exercise-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f0f0f0;
+            border: none;
+            cursor: pointer;
+        }
+        .option-btn:hover {
+            background-color: #e0e0e0;
+        }
+        #user-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #submit-btn, #start-recording, #stop-recording {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #feedback {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="{% url 'lesson_list' %}">Lessons</a>
+        <a href="{% url 'exercise' %}">Exercise</a>
+        <!-- Add more navigation items as needed -->
+    </nav>
+    
+    {% block content %}
+    {% endblock %}
+</body>
+</html>

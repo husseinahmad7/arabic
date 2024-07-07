@@ -1,0 +1,145 @@
+{% extends 'lessons\base.html' %}
+{% load static %}
+
+{% block content %}
+<div id="exercise-container">
+    <h2>{{ exercise.get_type_display }} Exercise</h2>
+    
+    {% if exercise.image %}
+    <img src="{{ exercise.image.url }}" alt="Exercise Image" style="max-width: 300px;">
+    {% endif %}
+    
+    <p>{{ exercise.question }}</p>
+    
+    {% comment %} {% if exercise.type == 'IDENTIFY' %}
+    <div id="options">
+        {% for option in options %}
+        <button class="option-btn" data-option="{{ option.text }}">{{ option.text }}</button>
+        {% endfor %}
+    </div> {% endcomment %}
+    
+    {% comment %} <div id="handwritten-section">
+        <h3>Handwritten Answer</h3>
+        <div id="video-container" style="position: relative; width: 640px; height: 480px;">
+            <video id="video" width="640" height="480" autoplay style="position: absolute; top: 0; left: 0;"></video>
+            <canvas id="previewCanvas" width="640" height="480" style="position: absolute; top: 0; left: 0;"></canvas>
+        </div>
+        <canvas id="captureCanvas" width="640" height="640" style="display:none;"></canvas>
+        <button id="capture">Capture</button>
+        <button id="retake" style="display:none;">Retake</button>
+        <button id="submit-handwritten" style="display:none;">Submit Handwritten</button>
+        <p id="feedback" style="display: none;"></p>
+    </div> {% endcomment %}
+    <h3>Typing test</h3>
+    <input type="text" id="user-input" placeholder="Type your answer">
+    <button id="submit-btn">Submit</button>
+    
+    <h3>speech test</h3>
+        <button id="start-recording">Start Speaking</button>
+        <button id="stop-recording" style="display: none;">Stop Speaking</button>
+        <p id="speech-result"></p>
+        <button id="submit-speech" style="display: none;">Submit Answer</button>
+    
+    
+    <p id="feedback" style="display: none;"></p>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+{% comment %} <script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script> {% endcomment %}
+ <!-- v5 -->
+<script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+
+<script>
+$(document).ready(function() {
+    let exerciseId = {{ exercise.id }};
+    let recognition;
+    let finalTranscript = '';
+
+
+    function checkAnswer(answer) {
+        $.ajax({
+            url: '{% url "check_answer" %}',
+            method: 'POST',
+            data: {
+                'exercise_id': exerciseId,
+                'answer': answer,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                let feedback = $('#feedback');
+                if (response.is_correct) {
+                    feedback.text('Correct!').css('color', 'green');
+                } else {
+                    feedback.text('Incorrect. Try again.').css('color', 'red');
+                }
+                feedback.show();
+            }
+        });
+    }
+
+    $('.option-btn').click(function() {
+        checkAnswer($(this).data('option'));
+    });
+    
+    $('#submit-btn').click(function() {
+        checkAnswer($('#user-input').val());
+    });
+
+    
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'ar-SY';  // Set to Arabic
+
+        recognition.onresult = function(event) {
+            console.log("Speech recognition result received");
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            console.log("Final transcript:", finalTranscript);
+            console.log("Interim transcript:", interimTranscript);
+            $('#speech-result').html(finalTranscript + '<i style="color:#999;">' + interimTranscript + '</i>');
+        };
+        recognition.onerror = function(event) {
+            console.error("Speech recognition error:", event.error);
+            $('#speech-result').text('Error: ' + event.error);
+        };
+
+        recognition.onend = function() {
+            $('#stop-recording').hide();
+            $('#start-recording').show();
+            $('#submit-speech').show();
+        };
+
+        $('#start-recording').click(function() {
+            finalTranscript = '';
+            $('#speech-result').empty();
+            recognition.start();
+            console.log("Speech recognition started");
+            $(this).hide();
+            $('#stop-recording').show();
+            $('#submit-speech').hide();
+        });
+
+        $('#stop-recording').click(function() {
+            recognition.stop();
+        });
+
+        $('#submit-speech').click(function() {
+            checkAnswer(finalTranscript);
+        });
+    } else {
+        $('#start-recording, #stop-recording, #submit-speech').hide();
+        $('#speech-result').text('Speech recognition is not supported in this browser.');
+    }
+
+    
+});
+</script>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'lessons\base.html' %}
+{% load static %}
+
+{% block content %}
+<div id="handwritten-section">
+    <h3>Handwritten Answer</h3>
+    <video id="video" width="640" height="480" autoplay></video>
+    <button id="capture">Capture</button>
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+    <p id="ocr-result"></p>
+    <button id="submit-handwritten" style="display:none;">Submit Handwritten</button>
+</div>
+
+<script src='https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js'></script>
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureButton = document.getElementById('capture');
+    const submitHandwrittenButton = document.getElementById('submit-handwritten');
+    const ocrResult = document.getElementById('ocr-result');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            video.srcObject = stream;
+        });
+
+    captureButton.addEventListener('click', () => {
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        Tesseract.recognize(canvas, 'ara')
+            .then(({ data: { text } }) => {
+                ocrResult.textContent = text;
+                submitHandwrittenButton.style.display = 'block';
+            });
+    });
+
+    submitHandwrittenButton.addEventListener('click', () => {
+        checkAnswer(ocrResult.textContent, 'handwritten');
+    });
+    
+
+    {% comment %} function checkAnswer(answer, type) {
+        $.ajax({
+            url: '{% url "exercise" lesson.id exercise.order %}',
+            method: 'POST',
+            data: {
+                'attempt_type': type,
+                'answer': answer,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                let feedback = $('#feedback');
+                if (response.is_correct) {
+                    feedback.text('Correct!').css('color', 'green');
+                } else {
+                    feedback.text('Incorrect. Try again.').css('color', 'red');
+                }
+                feedback.show();
+            }
+        });
+    } {% endcomment %}
+</script>
+{% endblock %}
