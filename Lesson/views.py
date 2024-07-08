@@ -106,7 +106,8 @@ class CheckAnswerView(generics.CreateAPIView):
         def clean_answer(answer):
             answer = answer.lower()
             # Remove punctuation
-            answer = re.sub(f"[{re.escape(string.punctuation)}]", "", answer)
+            answer = re.sub(r'[.,،]', "", answer)
+            # answer = re.sub(f"[{re.escape(string.punctuation)}]", "", answer)
             # Remove extra whitespace
             answer = answer.strip()
             return answer
