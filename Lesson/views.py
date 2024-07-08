@@ -115,8 +115,11 @@ class CheckAnswerView(generics.CreateAPIView):
         cleaned_spoken_answer = clean_answer(spoken_answer)
         cleaned_correct_answer = clean_answer(question.correct_answer)
 
-        is_correct = (written_answer.strip('., ').lower() == question.correct_answer.lower() or
-                      spoken_answer.strip('., ').lower() == question.correct_answer.lower())
+        is_correct = (cleaned_written_answer == cleaned_correct_answer and
+                      cleaned_spoken_answer == cleaned_correct_answer)
+
+        # is_correct = (written_answer.strip('., ').lower() == question.correct_answer.lower() or
+        #               spoken_answer.strip('., ').lower() == question.correct_answer.lower())
 
         # UserQuestionAttempt.objects.update_or_create(
         #     user=request.user,
