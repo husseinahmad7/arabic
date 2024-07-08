@@ -25,7 +25,8 @@ from .models import Lesson,Question,UserExerciseProgress, UserQuestionAttempt #U
 # from .selectors import get_lessons, get_lesson, get_user_progress
 
 # from .services import update_user_progress
-
+import string
+import re
 
 class VocabularySerializer(serializers.ModelSerializer):
     class Meta:
@@ -100,6 +101,19 @@ class CheckAnswerView(generics.CreateAPIView):
             question = Question.objects.get(id=question_id)
         except Question.DoesNotExist:
             return Response({'error': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+         # Function to clean the answer by removing punctuation and extra whitespace
+        def clean_answer(answer):
+            answer = answer.lower()
+            # Remove punctuation
+            answer = re.sub(f"[{re.escape(string.punctuation)}]", "", answer)
+            # Remove extra whitespace
+            answer = answer.strip()
+            return answer
+
+        cleaned_written_answer = clean_answer(written_answer)
+        cleaned_spoken_answer = clean_answer(spoken_answer)
+        cleaned_correct_answer = clean_answer(question.correct_answer)
 
         is_correct = (written_answer.strip('., ').lower() == question.correct_answer.lower() or
                       spoken_answer.strip('., ').lower() == question.correct_answer.lower())
